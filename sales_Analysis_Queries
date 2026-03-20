@@ -1,0 +1,129 @@
+# Q1 What is the average number of orders per customer?
+# Ans 1) I have count the number of the order with each customer and also count number of the order by country in the same Question 
+
+with CountOrder as (
+select CustomerID,shipCountry,
+Count(OrderID) as OrderCount
+from orders
+group by CustomerID,shipCountry
+)
+select CustomerID,shipCountry,
+Avg(OrderCount) as AvgOrderCount
+from CountOrder
+group by CustomerId,shipCountry;
+
+
+# Q2 How do customer order patterns vary by city or country?
+# Ans 2) Calculate Average Orders per City , By Country , order Frequency 
+
+with OrderByGeography as (
+select ShipCountry,
+shipCity,
+count(OrderId) as OrderCount
+from orders
+group by shipCountry,shipCity
+)
+select shipCountry,
+shipCity,
+OrderCount,
+Avg(OrderCount) as OrderFrequency
+from OrderByGeography
+group by shipCountry,shipCity;
+
+#Q3 Can we cluster customers based on total spend, order count, and preferred categories?
+
+select distinct (o.CustomerID),
+c.CategoryName as Preferred_Category,
+Sum(od.UnitPrice * od.Quantity) as TotalSpend,
+count(od.orderID) as orderCount
+from orders o 
+join order_details od on o.orderID = od.orderID
+join products p on od.productID = p.productID
+join categories c on p.CategoryID = c.categoryID
+group by o.CustomerID,c.CategoryName; 
+
+#Q4 Which product categories or products contribute most to order revenue? 
+select ProductID,
+productName,
+sum(UnitPrice  * UnitsInStock) as Order_Revenue
+from products
+group by ProductID,productName;
+
+#Q5 Are there any correlations between orders and customer location or product category?
+select c.Address as Customer_Location,
+p.productName as Product_Category,
+sum(p.UnitPrice * p.UnitsInStock) as OrderRevenue
+from  products p 
+join order_details od on p.productID = od.productID
+join orders o on od.orderID = o.orderID
+join customers c on o.customerID = c.customerID
+group by Customer_Location,Product_Category; 
+
+# 6)How frequently do different customer segments place orders?
+select customerID,
+count(orderID) as TotalOrders
+from orders
+group by customerID;
+
+# 7) What is the geographic and title-wise distribution of employees
+WITH geoWiseDistribution AS (
+    SELECT Country,
+           City,
+           COUNT(EmployeeID) AS TotalEmployee
+    FROM Employees
+    GROUP BY Country, City
+)
+SELECT * FROM geoWiseDistribution;
+
+WITH Title_wise AS (
+    SELECT Title,
+           COUNT(EmployeeID) AS TotalEmployee
+    FROM Employees
+    GROUP BY Title
+)
+SELECT * FROM Title_wise;
+
+# 8) What trends can we observe in hire dates across employee titles
+# Ans 8) first we count the number of employee with hiring year and titles wise employee
+select title,
+year(HireDate) as HiringYear,
+count(employeeID) as TotalEmployee
+from employees
+group by title,HiringYear;
+
+#9)What patterns exist in employee title and courtesy title distributions
+select title as employee_Title,
+TitleOfCourtesy as title,
+count(employeeID) as NumberOfEmployee
+from employees
+group by title,TitleOfCourtesy;
+
+#10)Are there correlations between product pricing, stock levels, and sales performance?
+
+select ProductID,
+UnitPrice as Product_Pricing,
+UnitsInStock as Stock_Levels,
+Sum(UnitPrice * UnitsInStock) as Sales
+from Products
+group by ProductID,UnitPrice,UnitsInStock;
+
+
+# 11) How does product demand change over months or seasons?
+
+select quarter(o.OrderDate) as Seasons,
+Month(o.OrderDate) as Months,
+sum(od.UnitPrice * od.Quantity) as DemandSales
+from orders o
+join order_details od on o.orderID = od.orderID
+group by quarter(o.OrderDate),Month(o.OrderDate)
+order by quarter(o.OrderDate),Month(o.OrderDate);
+
+# 12) Can we identify anomalies in product sales or revenue performance?
+select p.productName,
+sum(p.UnitPrice * p.UnitsInStock) as ProductSales,
+sum(od.UnitPrice * od.Quantity)as Revenue
+from products p
+join order_details od on p.productID = od.productID
+group by p.productName;
+
+#13)How are suppliers distributed across different product categories?
